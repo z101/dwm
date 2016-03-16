@@ -1,98 +1,172 @@
+diff --git a/config.def.h b/config.def.h
+index ec7e0fd..ed5ed98 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -1,6 +1,20 @@
+ /* See LICENSE file for copyright and license details. */
+ 
+ /* appearance */
++#define NUMCOLORS 10
++static const char colors[NUMCOLORS][MAXCOLORS][8] = {
++   // border foreground background
++   { "#202020", "#777777", "#202020" }, // normal
++   { "#202020", "#eeeeec", "#202020" }, // selected
++   { "#202020", "#fce94f", "#202020" }, // warning
++   { "#cc0000", "#eeeeec", "#cc0000" }, // error
++   { "#202020", "#bbbbbb", "#202020" }, // info
++   { "#202020", "#4e9a06", "#202020" }, // ok
++   { "#202020", "#3465a4", "#202020" }, // highlight
++   { "#202020", "#777777", "#202020" }, // normal
++   { "#202020", "#777777", "#202020" }, // normal
++   { "#202020", "#777777", "#202020" }, // normal
++};
+ static const char *fonts[] = {
+ 	"monospace:size=10"
+ };
+@@ -16,6 +30,7 @@ static const unsigned int snap      = 32;       /* snap pixel */
+ static const int showbar            = 1;        /* 0 means no bar */
+ static const int topbar             = 1;        /* 0 means bottom bar */
+ static const int viewontag = 1; /* switch view on tag switch */
++static const int showstatus = 0;
+ 
+ /* tagging */
+ static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 diff --git a/drw.c b/drw.c
-index f49200b..2ea3ae4 100644
+index f49200b..993763d 100644
 --- a/drw.c
 +++ b/drw.c
-@@ -206,6 +206,68 @@ drw_setscheme(Drw *drw, ClrScheme *scheme)
+@@ -206,6 +206,108 @@ drw_setscheme(Drw *drw, ClrScheme *scheme)
  	drw->scheme = scheme;
  }
  
 +int
-+drw_get_width(Drw *drw, int numcolors, const char *text)
++drw_get_width(Drw *drw, const char *text)
 +{
-+	int i;
-+	Fnt *curfont = drw->fonts[0];
-+	int w = drw_text(drw, 0, 0, 0, 0, text, 0) + curfont->h;
++	char buf[1024];
++	int i, len = 0;
 +
-+	for (i = 0; i < strlen(text); i++) {
-+		if (text[i] > 0 && text[i] <= numcolors) {
-+			/* we found a color code
-+			 * drw_text counted it as a normal character and added one character's width
-+			 * we aren't going to render this character, so we remove one character's width */
-+			w -= curfont->xfont->max_advance_width;
++	for (i = 0; text[i] != 0; i++) {
++		if (text[i] == '\\' && text[i+1] == 'c' && text[i+2] >= '0' && text[i+2] <= '9') {
++			i += 3;
++		}
++		
++		len++;
++	}
 +
-+			if (i == 0 || i + 1 == strlen(text)) {
-+				/* we're on the first or the last character of the string
-+				 * drw_text already added one character's height (divided by 2) as padding to the beginning and end
-+				 * we don't want to double this padding, so we skip this character */
-+				continue;
-+			}
++	for (i = 0; i < len; i++) {
++		buf[i] = '.';
++	}
++	buf[len] = '\0';
 +
-+			if (text[i - 1] > 0 && text[i - 1] <= numcolors) {
-+				/* the previous character was also a color code
-+				 * we already added padding in the previous iteration
-+				 * we don't want to double this padding, so we skip this character */
-+				continue;
-+			}
++	return drw_text(drw, 0, 0, 0, 0, buf, 0) + 1;
++}
 +
-+			/* we are somewhere in the middle of the string and the color has changed
-+			 * we want to add one character's height (divided by 2) as padding to the end of the previous colored text
-+			 * and to the beginning of the new colored text */
-+			w += curfont->h;
++int
++drw_status_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, const char *text, int invert)
++{
++	char buf[1024];
++	int tx, ty, th;
++	Extnts tex;
++	XftDraw *d = NULL;
++	Fnt *curfont;
++	size_t i, len;
++	int utf8strlen, utf8charlen;
++	long utf8codepoint = 0;
++	const char *utf8str;
++
++	XSetForeground(drw->dpy, drw->gc, invert ?
++				   drw->scheme->fg->pix : drw->scheme->bg->pix);
++	XFillRectangle(drw->dpy, drw->drawable, drw->gc, x, y, w, h);
++	d = XftDrawCreate(drw->dpy, drw->drawable,
++					  DefaultVisual(drw->dpy, drw->screen),
++					  DefaultColormap(drw->dpy, drw->screen));
++
++	curfont = drw->fonts[0];
++	utf8strlen = 0;
++	utf8str = text;
++	while (*text) {
++		utf8charlen = utf8decode(text, &utf8codepoint, UTF_SIZ);
++	}
++
++	if (utf8strlen) {
++		drw_font_getexts(curfont, utf8str, utf8strlen, &tex);
++		/* shorten text if necessary */
++		for (len = MIN(utf8strlen, (sizeof buf) - 1); len && (tex.w > w - drw->fonts[0]->h || w < drw->fonts[0]->h); len--)
++			drw_font_getexts(curfont, utf8str, len, &tex);
++
++		if (len) {
++			memcpy(buf, utf8str, len);
++			buf[len] = '\0';
++			if (len < utf8strlen)
++				for (i = len; i && i > len - 3; buf[--i] = '.');
++
++			th = curfont->ascent + curfont->descent;
++			ty = y + (h / 2) - (th / 2) + curfont->ascent;
++			tx = x;// + (h / 2);
++			XftDrawStringUtf8(d, invert ? &drw->scheme->bg->rgb : &drw->scheme->fg->rgb, curfont->xfont, tx, ty, (XftChar8 *)buf, len);
++			x += tex.w;
 +		}
 +	}
 +
-+  return w;
++	if (d)
++		XftDrawDestroy(d);
++
++	return x;
 +}
 +
 +void
-+drw_colored_text(Drw *drw, ClrScheme *scheme, int numcolors, int x, int y, unsigned int w, unsigned int h, char *text)
++drw_colored_text(Drw *drw, ClrScheme *scheme, int x, int y, unsigned int w, unsigned int h, char *text)
 +{
-+	if (!drw || !drw->fontcount || !drw->scheme)
-+		return;
++	char buf[1024];
++	int i, j, coloridx = 0;
 +
-+	char *buf = text, *ptr = buf, c = 1;
-+	int i;
++	drw_setscheme(drw, &scheme[0]);
++	for (i = 0, j = 0; text[i] != 0; i++) {
++		if (text[i] == '\\' && text[i+1] == 'c' && text[i+2] >= '0' && text[i+2] <= '9') {
++			coloridx = text[i+2] - '0';
++			i += 3;
++			buf[j] = '\0';
 +
-+	while (*ptr) {
-+		for (i = 0; *ptr < 0 || *ptr > numcolors; i++, ptr++);
-+		if (!*ptr)
-+			break;
-+		c = *ptr;
-+		*ptr = 0;
-+		if (i)
-+			x = drw_text(drw, x, y, w, h, buf, 0) + drw->fonts[0]->h;
-+		*ptr = c;
-+		drw_setscheme(drw, &scheme[c-1]);
-+		buf = ++ptr;
++			x = drw_status_text(drw, x, y, w, h, buf, 0);
++			drw_setscheme(drw, &scheme[coloridx]);
++
++			j = 0;
++		}
++		
++		buf[j] = text[i];
++		j++;
 +	}
-+	drw_text(drw, x, y, w, h, buf, 0);
++	buf[j] = '\0';
++	drw_setscheme(drw, &scheme[coloridx]);
++	x = drw_status_text(drw, x, y, w, h, buf, 0);
 +}
 +
  void
  drw_rect(Drw *drw, int x, int y, unsigned int w, unsigned int h, int filled, int empty, int invert)
  {
 diff --git a/drw.h b/drw.h
-index e3b8515..c51f6cd 100644
+index e3b8515..1aaefb9 100644
 --- a/drw.h
 +++ b/drw.h
-@@ -67,6 +67,8 @@ void drw_setfont(Drw *, Fnt *);
+@@ -67,6 +67,9 @@ void drw_setfont(Drw *, Fnt *);
  void drw_setscheme(Drw *, ClrScheme *);
  
  /* Drawing functions */
-+int drw_get_width(Drw *, int, const char *);
-+void drw_colored_text(Drw *, ClrScheme *, int, int, int, unsigned int, unsigned int, char *);
++int drw_get_width(Drw *, const char *);
++int drw_status_text(Drw *, int, int, unsigned int, unsigned int, const char *, int);
++void drw_colored_text(Drw *, ClrScheme *, int, int, unsigned int, unsigned int, char *);
  void drw_rect(Drw *, int, int, unsigned int, unsigned int, int, int, int);
  int drw_text(Drw *, int, int, unsigned int, unsigned int, const char *, int);
  
 diff --git a/dwm.c b/dwm.c
-index 1cbbd5e..a4e92d5 100644
+index 1cbbd5e..2c50f24 100644
 --- a/dwm.c
 +++ b/dwm.c
 @@ -51,6 +51,7 @@
                                 * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
  #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
  #define LENGTH(X)               (sizeof X / sizeof X[0])
-+#define MAXCOLORS               9
++#define MAXCOLORS               10
  #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
  #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
  #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
@@ -124,16 +198,17 @@ index 1cbbd5e..a4e92d5 100644
  	drw_text(drw, x, 0, w, bh, m->ltsymbol, 0);
  	x += w;
  	xx = x;
- 	if (m == selmon) { /* status is only drawn on selected monitor */
+-	if (m == selmon) { /* status is only drawn on selected monitor */
 -		w = TEXTW(stext);
-+		w = drw_get_width(drw, NUMCOLORS, stext);
++	if (m == selmon && showstatus) { /* status is only drawn on selected monitor */
++		w = drw_get_width(drw, stext);
  		x = m->ww - w;
  		if (x < xx) {
  			x = xx;
  			w = m->ww - xx;
  		}
 -		drw_text(drw, x, 0, w, bh, stext, 0);
-+		drw_colored_text(drw, scheme, NUMCOLORS, x, 0, w, bh, stext);
++		drw_colored_text(drw, scheme, x + 1, 0, w, bh, stext);
  	} else
  		x = m->ww;
  	if ((w = x - xx) > bh) {
@@ -167,7 +242,15 @@ index 1cbbd5e..a4e92d5 100644
  	configure(c); /* propagates border_width, if size doesn't change */
  	updatewindowtype(c);
  	updatesizehints(c);
-@@ -1625,12 +1626,12 @@ setup(void)
+@@ -1591,6 +1592,7 @@ setmfact(const Arg *arg)
+ void
+ setup(void)
+ {
++	int i;
+ 	XSetWindowAttributes wa;
+ 
+ 	/* clean up any zombies immediately */
+@@ -1625,12 +1627,12 @@ setup(void)
  	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
  	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
  	/* init appearance */
@@ -177,7 +260,7 @@ index 1cbbd5e..a4e92d5 100644
 -	scheme[SchemeSel].border = drw_clr_create(drw, selbordercolor);
 -	scheme[SchemeSel].bg = drw_clr_create(drw, selbgcolor);
 -	scheme[SchemeSel].fg = drw_clr_create(drw, selfgcolor);
-+	for(int i = 0; i < NUMCOLORS; i++){
++	for(i = 0; i < NUMCOLORS; i++){
 +		scheme[i].border = drw_clr_create(drw, colors[i][0]);
 +		scheme[i].fg = drw_clr_create(drw, colors[i][1]);
 +		scheme[i].bg = drw_clr_create(drw, colors[i][2]);
@@ -186,7 +269,7 @@ index 1cbbd5e..a4e92d5 100644
  	/* init bars */
  	updatebars();
  	updatestatus();
-@@ -1812,7 +1813,7 @@ unfocus(Client *c, int setfocus)
+@@ -1812,7 +1814,7 @@ unfocus(Client *c, int setfocus)
  	if (!c)
  		return;
  	grabbuttons(c, 0);
