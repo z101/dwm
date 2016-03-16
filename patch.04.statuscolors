@@ -1,5 +1,5 @@
 diff --git a/config.def.h b/config.def.h
-index ec7e0fd..ed5ed98 100644
+index ec7e0fd..b5655d4 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -1,6 +1,20 @@
@@ -23,19 +23,11 @@ index ec7e0fd..ed5ed98 100644
  static const char *fonts[] = {
  	"monospace:size=10"
  };
-@@ -16,6 +30,7 @@ static const unsigned int snap      = 32;       /* snap pixel */
- static const int showbar            = 1;        /* 0 means no bar */
- static const int topbar             = 1;        /* 0 means bottom bar */
- static const int viewontag = 1; /* switch view on tag switch */
-+static const int showstatus = 0;
- 
- /* tagging */
- static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 diff --git a/drw.c b/drw.c
-index f49200b..993763d 100644
+index f49200b..461976c 100644
 --- a/drw.c
 +++ b/drw.c
-@@ -206,6 +206,108 @@ drw_setscheme(Drw *drw, ClrScheme *scheme)
+@@ -206,6 +206,110 @@ drw_setscheme(Drw *drw, ClrScheme *scheme)
  	drw->scheme = scheme;
  }
  
@@ -86,6 +78,8 @@ index f49200b..993763d 100644
 +	utf8str = text;
 +	while (*text) {
 +		utf8charlen = utf8decode(text, &utf8codepoint, UTF_SIZ);
++		utf8strlen += utf8charlen;
++		text += utf8charlen;
 +	}
 +
 +	if (utf8strlen) {
@@ -159,7 +153,7 @@ index e3b8515..1aaefb9 100644
  int drw_text(Drw *, int, int, unsigned int, unsigned int, const char *, int);
  
 diff --git a/dwm.c b/dwm.c
-index 1cbbd5e..2c50f24 100644
+index 1cbbd5e..af666eb 100644
 --- a/dwm.c
 +++ b/dwm.c
 @@ -51,6 +51,7 @@
@@ -198,9 +192,8 @@ index 1cbbd5e..2c50f24 100644
  	drw_text(drw, x, 0, w, bh, m->ltsymbol, 0);
  	x += w;
  	xx = x;
--	if (m == selmon) { /* status is only drawn on selected monitor */
+ 	if (m == selmon) { /* status is only drawn on selected monitor */
 -		w = TEXTW(stext);
-+	if (m == selmon && showstatus) { /* status is only drawn on selected monitor */
 +		w = drw_get_width(drw, stext);
  		x = m->ww - w;
  		if (x < xx) {
