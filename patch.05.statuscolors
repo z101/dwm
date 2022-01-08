@@ -1,0 +1,97 @@
+diff -u /home/z101/dwmstatuscolor/config.def.h ./config.def.h
+--- a/config.def.h	2022-01-09 00:57:26.361474149 +0300
++++ b/config.def.h	2022-01-09 00:50:42.868939706 +0300
+@@ -16,10 +16,46 @@
+ static const char col_gray4[]       = "#bbbbbb";
+ static const char col_gray5[]       = "#202020";
+ static const char col_cyan[]        = "#202020";
++
++static const char col_dx[]			= "#202020";
++static const char col_dr[]			= "#cc0000";
++static const char col_dg[]			= "#4e9a06";
++static const char col_dy[]			= "#c4a000";
++static const char col_db[]			= "#3465a4";
++static const char col_dp[]			= "#75507b";
++static const char col_dt[]			= "#06989a";
++static const char col_dw[]			= "#bbbbbb";
++
++static const char col_lx[]			= "#555753";
++static const char col_lr[]			= "#ef2929";
++static const char col_lg[]			= "#8ae234";
++static const char col_ly[]			= "#fce94f";
++static const char col_lb[]			= "#729fcf";
++static const char col_lp[]			= "#ad7fa8";
++static const char col_lt[]			= "#34e2e2";
++static const char col_lw[]			= "#eeeeec";
++
+ static const char *colors[][3]      = {
+-	/*               fg         bg         border   */
+-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
+-	[SchemeSel]  = { col_gray4, col_gray5, col_cyan  },
++		 /*               fg         bg         border   */
++/*  1 */ [SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
++/*  2 */ [SchemeSel]  = { col_gray4, col_gray5, col_cyan  },
++/*  3 */ [SchemeUrg]  = { col_lw, 	col_lr,	   col_lr    },
++/*  4 */ [SchemeDx]   = { col_dx, 	col_gray1, col_gray2 },
++/*  5 */ [SchemeDr]   = { col_dr, 	col_gray1, col_gray2 },
++/*  6 */ [SchemeDg]   = { col_dg, 	col_gray1, col_gray2 },
++/*  7 */ [SchemeDy]   = { col_dy, 	col_gray1, col_gray2 },
++/*  8 */ [SchemeDb]   = { col_db, 	col_gray1, col_gray2 },
++/*  9 */ [SchemeDp]   = { col_dp, 	col_gray1, col_gray2 },
++/* 10 */ [SchemeDt]   = { col_dt, 	col_gray1, col_gray2 },
++/* 11 */ [SchemeDw]   = { col_dw, 	col_gray1, col_gray2 },
++/* 12 */ [SchemeLx]   = { col_lx, 	col_gray1, col_gray2 },
++/* 13 */ [SchemeLr]   = { col_lr, 	col_gray1, col_gray2 },
++/* 14 */ [SchemeLg]   = { col_lg, 	col_gray1, col_gray2 },
++/* 15 */ [SchemeLy]   = { col_ly, 	col_gray1, col_gray2 },
++/* 16 */ [SchemeLb]   = { col_lb, 	col_gray1, col_gray2 },
++/* 17 */ [SchemeLp]   = { col_lp, 	col_gray1, col_gray2 },
++/* 18 */ [SchemeLt]   = { col_lt, 	col_gray1, col_gray2 },
++/* 19 */ [SchemeLw]   = { col_lw, 	col_gray1, col_gray2 },
+ };
+ 
+ /* tagging */
+diff -u /home/z101/dwmstatuscolor/dwm.c ./dwm.c
+--- a/dwm.c	2022-01-09 00:57:26.365474032 +0300
++++ b/dwm.c	2022-01-09 00:52:03.638704969 +0300
+@@ -59,7 +59,7 @@
+ 
+ /* enums */
+ enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
+-enum { SchemeNorm, SchemeSel }; /* color schemes */
++enum { SchemeNorm, SchemeSel, SchemeUrg, SchemeDx, SchemeDr, SchemeDg, SchemeDy, SchemeDb, SchemeDp, SchemeDt, SchemeDw, SchemeLx, SchemeLr, SchemeLg, SchemeLy, SchemeLb, SchemeLp, SchemeLt, SchemeLw }; /* color schemes */
+ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
+        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
+        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
+@@ -726,6 +726,10 @@
+ 	int boxs = drw->fonts->h / 9;
+ 	int boxw = drw->fonts->h / 6 + 2;
+ 	unsigned int i, occ = 0, urg = 0;
++	char *ts = stext;
++	char *tp = stext;
++	int tx = 0;
++	char ctmp;
+ 	Client *c;
+ 
+ 	if (!m->showbar)
+@@ -735,7 +739,17 @@
+ 	if (m == selmon) { /* status is only drawn on selected monitor */
+ 		drw_setscheme(drw, scheme[SchemeNorm]);
+ 		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+-		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
++		while (1) {
++			if ((unsigned int)*ts > LENGTH(colors)) { ts++; continue ; }
++			ctmp = *ts;
++			*ts = '\0';
++			drw_text(drw, m->ww - sw + tx, 0, sw - tx, bh, 0, tp, 0);
++			tx += TEXTW(tp) -lrpad;
++			if (ctmp == '\0') { break; }
++			drw_setscheme(drw, scheme[(unsigned int)(ctmp-1)]);
++			*ts = ctmp;
++			tp = ++ts;
++		}
+ 	}
+ 
+ 	for (c = m->clients; c; c = c->next) {
+Only in .: .git
+Only in .: patch.05.statuscolors
