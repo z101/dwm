@@ -67,10 +67,10 @@ diff -u /home/z101/dwmstatuscolor/dwm.c ./dwm.c
  	int boxs = drw->fonts->h / 9;
  	int boxw = drw->fonts->h / 6 + 2;
  	unsigned int i, occ = 0, urg = 0;
-+	char *ts = stext;
 +	char *tp = stext;
-+	int tx = 0;
-+	char ctmp;
++	char *ts = stext;
++	int chnum, chnext;
++	int tx = 0; 
  	Client *c;
  
  	if (!m->showbar)
@@ -79,19 +79,17 @@ diff -u /home/z101/dwmstatuscolor/dwm.c ./dwm.c
  		drw_setscheme(drw, scheme[SchemeNorm]);
  		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
 -		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
-+		while (1) {
-+			if ((unsigned int)*ts > LENGTH(colors)) { ts++; continue ; }
-+			ctmp = *ts;
-+			*ts = '\0';
-+			drw_text(drw, m->ww - sw + tx, 0, sw - tx, bh, 0, tp, 0);
-+			tx += TEXTW(tp) -lrpad;
-+			if (ctmp == '\0') { break; }
-+			drw_setscheme(drw, scheme[(unsigned int)(ctmp-1)]);
-+			*ts = ctmp;
-+			tp = ++ts;
++		while (*tp != '\0') {
++			chnum = (unsigned int)*tp++;
++			chnext = (unsigned int)*tp;
++			if (chnum > LENGTH(colors) && chnext != 0) continue;
++	
++			if (chnext != 0) *(tp-1) = '\0';
++			drw_text(drw, m->ww - sw + tx, 0, sw - tx, bh, 0, ts, 0);
++			tx += TEXTW(tp) - lrpad;
++			drw_setscheme(drw, scheme[chnum - 1]);
++			ts = tp;
 +		}
  	}
  
  	for (c = m->clients; c; c = c->next) {
-Only in .: .git
-Only in .: patch.05.statuscolors
