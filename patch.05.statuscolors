@@ -67,9 +67,9 @@ diff -u a/dwm.c b/dwm.c
  	int boxs = drw->fonts->h / 9;
  	int boxw = drw->fonts->h / 6 + 2;
  	unsigned int i, occ = 0, urg = 0;
-+	static char stextclean[256];
-+	char *tp = stext;
-+	char *ts = stext;
++	static char stextclean[256]; static char stextbuf[256]; strcpy(stextbuf, stext);
++	char *tp = stextbuf;
++	char *ts = stextbuf;
 +	int chnum, chnext;
 +	int k, j = 0, tx = 0; 
  	Client *c;
@@ -82,9 +82,9 @@ diff -u a/dwm.c b/dwm.c
 -		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
 -		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
 +		memset(stextclean, 0, LENGTH(stextclean));
-+		for (k = 0; stext[k] != '\0'; k++) {
-+			if ((unsigned int)stext[k] <= LENGTH(colors)) continue;
-+			stextclean[j++] = stext[k];
++		for (k = 0; stextbuf[k] != '\0'; k++) {
++			if ((unsigned int)stextbuf[k] <= LENGTH(colors)) continue;
++			stextclean[j++] = stextbuf[k];
 +		}
 +		tw = TEXTW(stextclean) - lrpad + 2; /* 2px right padding */
 +		while (*tp != '\0') {
