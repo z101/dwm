@@ -728,7 +728,7 @@ drawbar(Monitor *m)
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	static char stextclean[256];
-	static char stextbuf[256]; 
+	static char stextbuf[256];
 	char *tp = stextbuf;
 	char *ts = stextbuf;
 	int chnum, chnext;
