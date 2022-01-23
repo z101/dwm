@@ -16,10 +16,46 @@ static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#bbbbbb";
 static const char col_gray5[]       = "#202020";
 static const char col_cyan[]        = "#005577";
+
+static const char col_dx[]          = "#202020";
+static const char col_dr[]          = "#cc0000";
+static const char col_dg[]          = "#4e9a06";
+static const char col_dy[]          = "#c4a000";
+static const char col_db[]          = "#3465a4";
+static const char col_dp[]          = "#75507b";
+static const char col_dt[]          = "#06989a";
+static const char col_dw[]          = "#bbbbbb";
+
+static const char col_lx[]          = "#555753";
+static const char col_lr[]          = "#ef2929";
+static const char col_lg[]          = "#8ae234";
+static const char col_ly[]          = "#fce94f";
+static const char col_lb[]          = "#729fcf";
+static const char col_lp[]          = "#ad7fa8";
+static const char col_lt[]          = "#34e2e2";
+static const char col_lw[]          = "#eeeeec";
+
 static const char *colors[][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_gray5,  col_cyan  },
+/*                         fg          bg          border   */
+/*  1 */ [SchemeNorm]  = { col_gray3,  col_gray1,  col_gray2 },
+/*  2 */ [SchemeSel]   = { col_lb,     col_gray5,  col_cyan  },
+/*  3 */ [SchemeUrg]   = { col_lw,     col_lr,     col_lr    },
+/*  4 */ [SchemeDx]    = { col_dx,     col_gray1,  col_gray2 },
+/*  5 */ [SchemeDr]    = { col_dr,     col_gray1,  col_gray2 },
+/*  6 */ [SchemeDg]    = { col_dg,     col_gray1,  col_gray2 },
+/*  7 */ [SchemeDy]    = { col_dy,     col_gray1,  col_gray2 },
+/*  8 */ [SchemeDb]    = { col_db,     col_gray1,  col_gray2 },
+/*  9 */ [SchemeDp]    = { col_dp,     col_gray1,  col_gray2 },
+/* 10 */ [SchemeDt]    = { col_dt,     col_gray1,  col_gray2 },
+/* 11 */ [SchemeDw]    = { col_dw,     col_gray1,  col_gray2 },
+/* 12 */ [SchemeLx]    = { col_lx,     col_gray1,  col_gray2 },
+/* 13 */ [SchemeLr]    = { col_lr,     col_gray1,  col_gray2 },
+/* 14 */ [SchemeLg]    = { col_lg,     col_gray1,  col_gray2 },
+/* 15 */ [SchemeLy]    = { col_ly,     col_gray1,  col_gray2 },
+/* 16 */ [SchemeLb]    = { col_lb,     col_gray1,  col_gray2 },
+/* 17 */ [SchemeLp]    = { col_lp,     col_gray1,  col_gray2 },
+/* 18 */ [SchemeLt]    = { col_lt,     col_gray1,  col_gray2 },
+/* 19 */ [SchemeLw]    = { col_lw,     col_gray1,  col_gray2 },
 };
 
 /* tagging */

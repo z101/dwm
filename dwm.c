@@ -59,7 +59,8 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeUrg, SchemeDx, SchemeDr, SchemeDg, SchemeDy, SchemeDb, SchemeDp, SchemeDt, SchemeDw, SchemeLx, SchemeLr, SchemeLg, SchemeLy, SchemeLb, SchemeLp, SchemeLt, SchemeLw
+}; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -726,7 +727,15 @@ drawbar(Monitor *m)
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
+	static char stextclean[256];
+	static char stextbuf[256]; 
+	char *tp = stextbuf;
+	char *ts = stextbuf;
+	int chnum, chnext;
+	int k, j = 0, tx = 0;
 	Client *c;
+
+	strcpy(stextbuf, stext);
 
 	if (!m->showbar)
 		return;
@@ -734,8 +743,23 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
+
+		memset(stextclean, 0, LENGTH(stextclean));
+		for (k = 0; stextbuf[k] != '\0'; k++) {
+			if ((unsigned int)stextbuf[k] <= LENGTH(colors)) continue;
+			stextclean[j++] = stextbuf[k];
+		}
+		tw = TEXTW(stextclean) - lrpad + 2; /* 2px right padding */
+		while (*tp != '\0') {
+			chnum = (unsigned int)*tp++;
+			chnext = (unsigned int)*tp;
+			if (chnum > LENGTH(colors) && chnext != 0) continue;
+			if (chnext != 0) *(tp-1) = '\0';
+			drw_text(drw, m->ww - tw + tx, 0, tw - tx, bh, 0, ts, 0);
+			tx += TEXTW(ts) - lrpad;
+			drw_setscheme(drw, scheme[chnum - 1]);
+			ts = tp;
+		}
 	}
 
 	for (c = m->clients; c; c = c->next) {
