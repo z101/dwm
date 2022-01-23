@@ -15,7 +15,7 @@ static const char col_gray2[]       = "#202020";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#bbbbbb";
 static const char col_gray5[]       = "#202020";
-static const char col_cyan[]        = "#005577";
+static const char col_cyan[]        = "#202020";
 
 static const char col_dx[]          = "#202020";
 static const char col_dr[]          = "#cc0000";
