@@ -53,7 +53,7 @@ index c149f0d..277abf0 100644
  
  /* tagging */
 diff --git a/dwm.c b/dwm.c
-index 1f86270..88ece98 100644
+index 1f86270..5b2a863 100644
 --- a/dwm.c
 +++ b/dwm.c
 @@ -59,7 +59,8 @@
@@ -71,7 +71,7 @@ index 1f86270..88ece98 100644
  	int boxw = drw->fonts->h / 6 + 2;
  	unsigned int i, occ = 0, urg = 0;
 +	static char stextclean[256];
-+	static char stextbuf[256]; 
++	static char stextbuf[256];
 +	char *tp = stextbuf;
 +	char *ts = stextbuf;
 +	int chnum, chnext;
